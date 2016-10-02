@@ -32,6 +32,12 @@
 	hg commit -m "added f2"	
 
 	hg up stable
+	hg branch feature/f3
+	touch f3
+	hg add f3
+	hg commit -m "added f3"
+
+	hg up stable
 	hg branch release/r1
 	touch r1
 	hg add r1
@@ -43,6 +49,12 @@
 	hg add closed
 	hg commit -m "added closed"
 	hg commit --close-branch -m "closed"
+
+	hg up feature/f3
+	hg commit --close-branch -m "closed"
+	hg up default
+	hg merge feature/f3
+	hg commit -m "merge default with feature/f3"
 ) 1>/dev/null
 
 echo "$TARGET/repository"

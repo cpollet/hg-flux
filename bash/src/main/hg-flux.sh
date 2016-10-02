@@ -101,7 +101,7 @@ function _hg_branches_to_merge {
 			available_branches="$available_branches $branch"
 		fi
 	done
-	echo "$available_branches"
+	echo `echo "$available_branches" | sed -e "s/^ //g"`
 }
 
 function hg_log {
@@ -234,29 +234,6 @@ function hg_contains {
 	else
 		echo "$rev is contained in $branch"
 	fi
-}
-
-function __init {
-	rm -rf a .hg
-	hg init
-	touch default
-	hg add default
-	hg commit -m"started repo"
-
-	hg branch stable
-	hg commit -m"started stable"
-
-	hg_start feature f1
-	touch f1
-	hg add f1
-	hg commit -m"added f1"
-
-	hg_start feature f2
-	touch f2
-	hg add f2
-	hg commit -m"added f2"	
-
-	hg_start release r1
 }
 
 

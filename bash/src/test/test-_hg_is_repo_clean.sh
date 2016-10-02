@@ -18,5 +18,5 @@ echo "Using repository $REPOSITORY"
 
 	assert "_hg_is_repo_clean" "0"
 
-	assert_end examples
+	assert_end _hg_is_repo_clean
 )

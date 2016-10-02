@@ -1,0 +1,61 @@
+Features
+
+$ hg (feature|fix) start <name>
+ -> hg up $stable
+ -> hg branch ($feature|$fix)/<name>
+ -> hg commit -m"started feature/<name>"
+
+$ hg (feature|fix) finish <name>
+ -> hg up ($feature|$fix)/<name>
+ -> hg commit --close -m"closing ($feature|$fix)/<name>"
+ -> hg up $develop
+ -> hg merge ($feature|$fix)/<name>
+ -> hg commit -m"merged ($feature|$fix)/<name> to $develop"
+
+$ hg (feature|fix) abort <name>
+ -> hg commit --close -m"aborting ($feature|$fix)/<name>"
+
+$ hg release start <name>
+ -> hg up $stable
+ -> hg branch $release/<name>
+ -> hg commit -m"started release/<name>"
+
+$ hg release add -a
+ -> hg merge $develop
+ -> hg commit -m"merged $develop to release/<name>
+
+$ hg release add (feature|fix) <name>
+ -> if branch is still open, fail
+ -> hg merge ($feature|$fix)/<name>
+ -> hg commit -m"merged ($feature|$fix)/<name> to release/<name>
+
+release on release/<name>
+
+$ hg release finish <name>
+ -> hg commit --close "closing release/<name>"
+ -> hg up $stable
+ -> hg merge $release/<name>
+ -> hg commit -m"merged $release/<name> to $stable"
+ -> hg up $develop
+ -> hg merge $stable
+ -> hg commit -m"merged $stable to $develop"
+ -> display lost of open branches wiating to be released not containing $stable changes
+
+ $ hg fullmerge <regex> [<name>] [-n]
+ if <name> not provided, use GUID
+  -> mkdir fullmerge/<name>
+  -> cd fullmerge/<name>
+  -> hg clone -b $stable .. .
+  -> hg branches
+  -> grep <regex>
+  -> hg branch $fullmerge/<name>
+  -> hg commit -m"creating $fullmerge/<name>"
+  -> loop:
+  	hg merge $branch
+  	stop if fails, then try to merge 2 by 2
+  	hg commit -m"merged $branch to $fullmerge/<name>
+  -> if -n not specified and never failed: hg push
+
+in case of conflict...
+
+save merge resolution 

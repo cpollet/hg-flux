@@ -8,7 +8,7 @@ echo "Using repository $REPOSITORY"
 	. ../main/hg-flux.sh
 	cd "$REPOSITORY"
 	
-	assert "_hg_branches" "release/r1 feature/f2 feature/f1 closed stable default"
+	assert "_hg_branches" "default release/r1 feature/f2 feature/f1 feature/f3 closed stable"
 
-	assert_end examples
+	assert_end _hg_branches
 )

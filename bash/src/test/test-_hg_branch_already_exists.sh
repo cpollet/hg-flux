@@ -11,5 +11,5 @@ echo "Using repository $REPOSITORY"
 	assert "_hg_branch_already_exists release/r1" "1"
 	assert "_hg_branch_already_exists new_branch" "0"
 
-	assert_end examples
+	assert_end _hg_branch_already_exists
 )
