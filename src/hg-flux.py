@@ -25,7 +25,7 @@ def open(ui, repo, name=None, **opts):
         return
 
     ui.write("$ hg branches :: contains {}?\n".format(name))
-    for branch in repo.branchmap().iterbranches():
+    for branch in branches(repo):
         if branch[0] == name:
             ui.write("Branch {} already exists, not creating new one.\n".format(name))
             return
@@ -39,6 +39,22 @@ def open(ui, repo, name=None, **opts):
         ui.write("$ hg commit -m \"Created branch '{}'\"\n".format(name))
         commands.commit(ui, repo, ".", message="Created branch '{}'".format(name))
         ui.write("committed new branch {}.\n".format(name))
+
+
+def branches(repo):
+    if "iterbranches" in dir(repo.branchmap()):  # only available since mercurial 2.9
+        return [(branch[0], not branch[3]) for branch in repo.branchmap().iterbranches()]
+
+    branches = []
+    for tag, heads in repo.branchmap().iteritems():
+        isopen = False
+        for h in reversed(heads):
+            ctx = repo[h]
+            isopen = not ctx.closesbranch()
+            if isopen:
+                break
+        branches.append((tag, isopen))
+    return branches
 
 
 def repo_is_clean(ui, repo):
@@ -115,9 +131,7 @@ def finish(ui, repo):
         commands.status(ui, repo)
         return
 
-    ui.write("$ hg branches :: get all open branches")
-    for branch in repo.branchmap().iterbranches():
-        is_open = not branch[3]
-        if branch[0] != 'stable' and is_open:
-            merge_and_commit(ui, repo, branch[0], 'stable')
-
+    ui.write("$ hg branches :: get all open branches\n")
+    for name, is_open in branches(repo):
+        if name != 'stable' and is_open:
+            merge_and_commit(ui, repo, name, 'stable')
