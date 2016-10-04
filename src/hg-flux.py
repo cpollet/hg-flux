@@ -31,7 +31,8 @@ def open(ui, repo, name=None, **opts):
             return
 
     ui.write("$ hg update {}\n".format("stable"))
-    commands.update(ui, repo, None, 'stable', False, None, True, None)
+
+    commands.update(ui, repo, None, 'stable', False, None, True)
     ui.write("$ hg branch {}\n".format("name"))
     commands.branch(ui, repo, name)
 
@@ -85,26 +86,36 @@ def close(ui, repo, name=None):
 
 def merge_and_commit(ui, repo, node_dst, node_src):
     ui.write("$ hg up {}\n".format(node_dst))
-    commands.update(ui, repo, None, node_dst, False, None, True, None)
+    commands.update(ui, repo, None, node_dst, False, None, True)
 
-    p1 = repo[None].parents()[0]
-    p2 = repo[node_src]
-    if repo.ui.configlist('merge', 'preferancestor', ['*']) == ['*']:
-        cahs = repo.changelog.commonancestorsheads(p1.node(), p2.node())
-        pas = [repo[anc] for anc in (sorted(cahs) or [nullid])]
-    else:
-        pas = [p1.ancestor(p2, warn=True)]
-
-    if pas != [p2]:
+    if src_branch_is_not_ancestor(repo, node_src):
         ui.write("$ hg merge {}\n".format(node_src))
         conflicts = commands.merge(ui, repo, node_src)
         if conflicts:
             raise error.Abort(_("unable to auto-merge {} to {}, please merge manually and retry\n"
                                 .format(node_src, node_dst)))
         ui.write("$ hg commit -m \"Merged branch '{}' to '{}'\"\n".format(node_src, node_dst))
-        commands.commit(ui, repo, ".", message="Merged branch '{}' to '{}'".format(node_src, node_dst))
+        commands.commit(ui, repo, message="Merged branch '{}' to '{}'".format(node_src, node_dst))
 
     return False
+
+
+def src_branch_is_not_ancestor(repo, node):
+    """inspiration from merge.py, update() function"""
+    p1 = repo[None].parents()[0]
+    p2 = repo[node]
+
+    if "commonancestorsheads" in dir(repo.changelog):  # from mercurial 3.0
+        if repo.ui.configlist('merge', 'preferancestor', ['*']) == ['*']:
+            cahs = repo.changelog.commonancestorsheads(p1.node(), p2.node())
+            pa = [repo[anc] for anc in (sorted(cahs) or [nullid])]
+        else:
+            pa = [p1.ancestor(p2, warn=True)]
+
+    else:
+        pa = [p1.ancestor(p2)]
+
+    return pa[0] != p2
 
 
 @command('flux-prepare', [], _('<name>'))
